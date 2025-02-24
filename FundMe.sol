@@ -17,6 +17,12 @@ contract FundMe {
 
     address[] public funders;
     mapping(address funder => uint256 amountFunded) public addressToAmountFunded;
+
+    address owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
     // Allow function to sent value (payable) in native cryptocurrency
     function fund() public payable {
         // Allow users to send $
@@ -30,8 +36,30 @@ contract FundMe {
         addressToAmountFunded[msg.sender] = addressToAmountFunded[msg.sender] + msg.value;
     }
 
-    // function withdraw() public {
+     function withdraw() public {
+        require(msg.sender == owner, "must be owner");
+        // for loop
+        // [1, 2, 3, 4] elements
+        // 0, 1, 2, 3 indexes
+        for(uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++){
+            address funder = funders[funderIndex];
+            addressToAmountFunded[funder] = 0;
+        }
 
-    // }
+        // reset the array
+        funders = new address[](0);
+        // actually withdraw the funds
+
+        // tramsfer
+        payable(msg.sender).transfer(address(this).balance);
+
+        // send
+        bool sendSucceess =  payable(msg.sender).send(address(this).balance);
+        require(sendSucceess, 'Send failed');
+
+        // call
+       (bool callSuccess, bytes memory dataReturned) = payable(msg.sender).call{value: address(this).balance}("");
+        require(callSuccess, "Call failed");
+     }
 
 }
