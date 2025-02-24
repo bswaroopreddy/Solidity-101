@@ -2,33 +2,45 @@
 // Withdraw 
 // Set minimum amount to transfer
 
-// SPDX-Licence-Identifier: MIT
+
+// 8,40,456 gas
+    // 8,17,004 gas - after MINIMUM_USD to constanat
+    // 790387 gas - after making owner to immutable
+    
 
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.24;
 
+// constant, immutability
 
 import {PriceConverter} from "./priceConverter.sol";
 contract FundMe {
     using PriceConverter for uint256;
     
-    uint256 public minimumUsd = 5e18;
+    // constant and immutable variables store directly into the bytecode instead of storage
+    uint256 public constant MINIMUM_USD = 5e18;
+    // 347 - constant
+    // 2446 - non-constant
+
 
     address[] public funders;
     mapping(address funder => uint256 amountFunded) public addressToAmountFunded;
 
-    address owner;
+    address public immutable i_owner;
+    // 439 gas - immutable
+    //  2574 gas - non-immutable
 
     constructor() {
-        owner = msg.sender;
+        i_owner = msg.sender;
     }
+    
     // Allow function to sent value (payable) in native cryptocurrency
     function fund() public payable {
         // Allow users to send $
         // Have a minimum $ sent
 
-        require(msg.value.getConversionRate() >= minimumUsd, "didn't send enough ETH");  // 1e18 = 1 ETH = 1000000000000000000 = 1 * 10^18
+        require(msg.value.getConversionRate() >= MINIMUM_USD, "didn't send enough ETH");  // 1e18 = 1 ETH = 1000000000000000000 = 1 * 10^18
 
         // what is a revert?
         // Undo any actions that have been done, and send the remaining gas back
@@ -59,12 +71,12 @@ contract FundMe {
         require(sendSucceess, 'Send failed');
 
         // call
-       (bool callSuccess, bytes memory dataReturned) = payable(msg.sender).call{value: address(this).balance}("");
+       (bool callSuccess, ) = payable(msg.sender).call{value: address(this).balance}("");
         require(callSuccess, "Call failed");
      }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Sender is not owner!");
+        require(msg.sender == i_owner, "Sender is not owner!");
         _;
     }
 }
