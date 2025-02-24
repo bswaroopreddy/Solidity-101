@@ -8,8 +8,8 @@
 
 pragma solidity ^0.8.24;
 
-import {PriceConverter} from "./priceConverter.sol";
 
+import {PriceConverter} from "./priceConverter.sol";
 contract FundMe {
     using PriceConverter for uint256;
     
@@ -36,8 +36,9 @@ contract FundMe {
         addressToAmountFunded[msg.sender] = addressToAmountFunded[msg.sender] + msg.value;
     }
 
-     function withdraw() public {
-        require(msg.sender == owner, "must be owner");
+     function withdraw() public onlyOwner{
+        // require(msg.sender == owner, "must be owner");
+        
         // for loop
         // [1, 2, 3, 4] elements
         // 0, 1, 2, 3 indexes
@@ -62,4 +63,8 @@ contract FundMe {
         require(callSuccess, "Call failed");
      }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Sender is not owner!");
+        _;
+    }
 }
